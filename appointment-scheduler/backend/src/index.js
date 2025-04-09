@@ -1,7 +1,7 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import connectDB from './config/database.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -11,8 +11,14 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// CORS configuration
+app.use(cors({
+  origin: ['https://sage-pothos-84268b.netlify.app', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Connect to MongoDB
