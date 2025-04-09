@@ -10,8 +10,8 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_REDIRECT_URI
 );
 
-const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const signToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: '24h'
   });
 };
@@ -45,11 +45,7 @@ export const register = async (req, res) => {
     await user.save();
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' } // Token expires in 24 hours
-    );
+    const token = signToken(user._id);
 
     res.status(201).json({
       token,
@@ -76,7 +72,7 @@ export const login = async (req, res) => {
     const { email, password } = loginSchema.parse(req.body);
 
     // Find user by email
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -88,11 +84,7 @@ export const login = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' } // Token expires in 24 hours
-    );
+    const token = signToken(user._id);
 
     res.json({
       token,
@@ -187,7 +179,7 @@ export const protect = async (req, res, next) => {
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
     // 3) Check if user still exists
-    const currentUser = await User.findById(decoded.id);
+    const currentUser = await User.findById(decoded.userId);
     if (!currentUser) {
       return res.status(401).json({
         status: 'error',
