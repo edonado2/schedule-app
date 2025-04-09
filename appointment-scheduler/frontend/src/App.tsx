@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import AppointmentList from './components/AppointmentList';
 import AppointmentForm from './components/AppointmentForm';
@@ -15,15 +15,17 @@ const AppContent = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchAppointments();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, location.pathname]);
 
   const fetchAppointments = async () => {
     try {
+      setLoading(true);
       const response = await appointmentService.getAll();
       setAppointments(response.data);
       setError(null);
