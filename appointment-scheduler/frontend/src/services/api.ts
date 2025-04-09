@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Use the environment variable for the API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 const api = axios.create({
@@ -7,6 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true // Add this for CORS with credentials
 });
 
 // Add token to requests
