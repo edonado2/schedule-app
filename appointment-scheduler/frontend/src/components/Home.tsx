@@ -111,10 +111,10 @@ const Home: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-12rem)] px-6">
           {/* Appointment Form */}
-          <div className="bg-white shadow sm:rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
+          <div className="backdrop-blur-lg bg-white/80 shadow-xl rounded-2xl border border-white/20 h-full overflow-y-auto transform transition-all duration-300 hover:shadow-2xl">
+            <div className="p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Create New Appointment
               </h3>
@@ -270,68 +270,89 @@ const Home: React.FC = () => {
           </div>
 
           {/* Appointments List */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Appointments</h2>
-            {loading ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Loading appointments...</p>
+          <div className="backdrop-blur-lg bg-white/80 shadow-xl rounded-2xl border border-white/20 h-full overflow-hidden transform transition-all duration-300 hover:shadow-2xl">
+            <div className="p-6 h-full flex flex-col">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                  <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-indigo-900">Recent Appointments</h2>
               </div>
-            ) : appointments.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No appointments scheduled yet</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {appointments.slice(0, 6).map((appointment) => (
-                  <div
-                    key={appointment._id}
-                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex flex-col h-full">
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium text-gray-900">{appointment.title}</h3>
-                          <button
-                            onClick={() => navigate(`/appointments/${appointment._id}/edit`)}
-                            className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-                          >
-                            Edit
-                          </button>
-                        </div>
-                        <p className="text-sm text-gray-500 mb-3 line-clamp-2">{appointment.description}</p>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p className="flex items-center">
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {new Date(appointment.date).toLocaleDateString()}
-                          </p>
-                          <p className="flex items-center">
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {appointment.startTime} - {appointment.endTime}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">{appointment.attendee.name}</p>
-                            <p className="text-sm text-gray-500">{appointment.attendee.email}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+              {loading ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+                    <p className="mt-2 text-indigo-700">Loading appointments...</p>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ) : appointments.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="p-4 bg-indigo-50 rounded-lg inline-block">
+                      <svg className="w-12 h-12 text-indigo-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <p className="mt-4 text-indigo-700">No appointments scheduled yet</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto pr-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {appointments.slice(0, 6).map((appointment) => (
+                      <div
+                        key={appointment._id}
+                        className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-xl p-4 hover:shadow-lg hover:bg-white/80 transition-all duration-300 transform hover:-translate-y-1"
+                      >
+                        <div className="flex flex-col h-full">
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="font-medium text-gray-900">{appointment.title}</h3>
+                              <button
+                                onClick={() => navigate(`/appointments/${appointment._id}/edit`)}
+                                className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                            <p className="text-sm text-gray-500 mb-3 line-clamp-2">{appointment.description}</p>
+                            <div className="space-y-1 text-sm text-gray-600">
+                              <p className="flex items-center">
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                {new Date(appointment.date).toLocaleDateString()}
+                              </p>
+                              <p className="flex items-center">
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {appointment.startTime} - {appointment.endTime}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-4 pt-4 border-t border-gray-100">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0">
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                              </div>
+                              <div className="ml-3">
+                                <p className="text-sm font-medium text-gray-900">{appointment.attendee.name}</p>
+                                <p className="text-sm text-gray-500">{appointment.attendee.email}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
