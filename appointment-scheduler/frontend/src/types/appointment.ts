@@ -1,20 +1,19 @@
 export interface Appointment {
-  id: string;
+  _id: string;
   title: string;
+  description: string;
   date: string;
   startTime: string;
   endTime: string;
-  description?: string;
   attendee: {
     name: string;
     email: string;
     phone?: string;
   };
   creator: string;
-  googleEventId?: string;
+  googleCalendarEventId?: string;
   reminderSent: boolean;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface AppointmentFormData {

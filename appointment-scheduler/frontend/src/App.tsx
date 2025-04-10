@@ -8,6 +8,8 @@ import Register from './components/Register';
 import Home from './components/Home';
 import { Appointment } from './types/appointment';
 import { appointmentService } from './services/api';
+import Layout from './components/Layout';
+import Calendar from './components/Calendar';
 
 const AppContent = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -40,7 +42,7 @@ const AppContent = () => {
   const handleDelete = async (id: string) => {
     try {
       await appointmentService.delete(id);
-      setAppointments(appointments.filter(app => app.id !== id));
+      setAppointments(appointments.filter(app => app._id !== id));
     } catch (err) {
       setError('Failed to delete appointment');
       console.error('Error deleting appointment:', err);
@@ -136,6 +138,7 @@ const AppContent = () => {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/calendar" element={<Calendar appointments={appointments} />} />
           <Route
             path="/appointments"
             element={
@@ -179,7 +182,9 @@ const AppContent = () => {
 const App = () => {
   return (
     <Router>
-      <AppContent />
+      <Layout>
+        <AppContent />
+      </Layout>
     </Router>
   );
 };

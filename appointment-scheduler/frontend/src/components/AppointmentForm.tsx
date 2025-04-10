@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { appointmentService } from '../services/api';
+import { Appointment } from '../types/appointment';
+import { toast } from 'react-hot-toast';
 
 interface AppointmentFormData {
   title: string;
@@ -18,6 +20,7 @@ interface AppointmentFormData {
 const AppointmentForm: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<AppointmentFormData>({
@@ -34,18 +37,46 @@ const AppointmentForm: React.FC = () => {
   });
 
   useEffect(() => {
-    if (id) {
-      const fetchAppointment = async () => {
-        try {
+    const initializeForm = async () => {
+      try {
+        if (location.state?.appointment) {
+          const appointment = location.state.appointment;
+          setFormData({
+            title: appointment.title,
+            date: appointment.date,
+            startTime: appointment.startTime,
+            endTime: appointment.endTime,
+            description: appointment.description || '',
+            attendee: {
+              name: appointment.attendee.name,
+              email: appointment.attendee.email,
+              phone: appointment.attendee.phone || ''
+            }
+          });
+        } else if (id) {
           const response = await appointmentService.getById(id);
-          setFormData(response.data);
-        } catch (err) {
-          setError('Failed to fetch appointment');
+          const appointment = response.data;
+          setFormData({
+            title: appointment.title,
+            date: new Date(appointment.date).toISOString().split('T')[0],
+            startTime: appointment.startTime,
+            endTime: appointment.endTime,
+            description: appointment.description || '',
+            attendee: {
+              name: appointment.attendee.name,
+              email: appointment.attendee.email,
+              phone: appointment.attendee.phone || ''
+            }
+          });
         }
-      };
-      fetchAppointment();
-    }
-  }, [id]);
+      } catch (err) {
+        setError('Failed to load appointment data');
+        console.error('Error loading appointment:', err);
+      }
+    };
+
+    initializeForm();
+  }, [id, location.state]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -72,14 +103,31 @@ const AppointmentForm: React.FC = () => {
     setError('');
 
     try {
+      const formattedData = {
+        ...formData,
+        date: new Date(formData.date).toISOString(),
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        description: formData.description || '',
+        attendee: {
+          name: formData.attendee.name,
+          email: formData.attendee.email,
+          phone: formData.attendee.phone || ''
+        }
+      };
+
       if (id) {
-        await appointmentService.update(id, formData);
+        await appointmentService.update(id, formattedData);
+        toast.success('Appointment updated successfully');
       } else {
-        await appointmentService.create(formData);
+        await appointmentService.create(formattedData);
+        toast.success('Appointment created successfully');
       }
       navigate('/appointments');
     } catch (err) {
       setError('Failed to save appointment');
+      toast.error('Failed to save appointment');
+      console.error('Error saving appointment:', err);
     } finally {
       setLoading(false);
     }
@@ -109,58 +157,55 @@ const AppointmentForm: React.FC = () => {
                 id="title"
                 required
                 value={formData.title}
-
                 onChange={handleChange}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label htmlFor="date" className="block text-sm font-medium text-gray-700">
+                Date
+              </label>
+              <input
+                type="date"
+                name="date"
+                id="date"
+                required
+                value={formData.date}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-                  Date
+                <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
+                  Start Time
                 </label>
                 <input
-                  type="date"
-                  name="date"
-                  id="date"
+                  type="time"
+                  name="startTime"
+                  id="startTime"
                   required
-                  value={formData.date}
+                  value={formData.startTime}
                   onChange={handleChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-                    Start Time
-                  </label>
-                  <input
-                    type="time"
-                    name="startTime"
-                    id="startTime"
-                    required
-                    value={formData.startTime}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
-                    End Time
-                  </label>
-                  <input
-                    type="time"
-                    name="endTime"
-                    id="endTime"
-                    required
-                    value={formData.endTime}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
+              <div>
+                <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
+                  End Time
+                </label>
+                <input
+                  type="time"
+                  name="endTime"
+                  id="endTime"
+                  required
+                  value={formData.endTime}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
               </div>
             </div>
 
@@ -178,7 +223,7 @@ const AppointmentForm: React.FC = () => {
               />
             </div>
 
-            <div className="space-y-6">
+            <div>
               <h4 className="text-sm font-medium text-gray-700">Attendee Information</h4>
               <div>
                 <label htmlFor="attendee.name" className="block text-sm font-medium text-gray-700">
