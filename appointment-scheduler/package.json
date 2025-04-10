@@ -5,7 +5,7 @@
   "scripts": {
     "build": "cd frontend && npm install && npm run build",
     "start": "cd frontend && npm run dev",
-    "install": "cd frontend && npm install"
+    "install": "echo 'Skipping root install'"
   },
   "workspaces": [
     "frontend",
