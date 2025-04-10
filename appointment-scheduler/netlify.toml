@@ -1,8 +1,10 @@
 [build]
+  base = "."
   command = "npm install && npm run build"
   publish = "frontend/dist"
 
 [build.environment]
+  NODE_VERSION = "18"
   VITE_API_URL = "https://appointment-scheduler-api.netlify.app/.netlify/functions/api"
 
 [[redirects]]
