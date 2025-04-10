@@ -1,11 +1,11 @@
 [build]
-  base = "appointment-scheduler"
+  base = "."
   command = "cd frontend && npm install && npm run build"
   publish = "frontend/dist"
 
 [build.environment]
   NODE_VERSION = "18"
-  VITE_API_URL = "https://appointment-scheduler-api.netlify.app/.netlify/functions/api"
+  VITE_API_URL = "https://appointment-scheduler-backend-duvy.onrender.com"
 
 [context.production]
   command = "cd frontend && npm install && npm run build"
@@ -14,4 +14,23 @@
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200 
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/app/*"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/appointments/*"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/calendar"
+  to = "/index.html"
+  status = 200
+  force = true 

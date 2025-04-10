@@ -13,7 +13,8 @@ const app = express();
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173', // Vite default port
-  'https://sage-pothos-84268b.netlify.app', // Your Netlify domain
+  'https://appointment-scheduler-frontend.netlify.app', // Your Netlify domain
+  'https://appointment-scheduler.netlify.app', // Alternative Netlify domain
   // Add any other domains you need
 ];
 
