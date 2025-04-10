@@ -11,6 +11,9 @@
   command = "cd frontend && npm install && npm run build"
   publish = "frontend/dist"
 
+[context.production.environment]
+  VITE_API_URL = "https://appointment-scheduler-backend-duvy.onrender.com/api"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
