@@ -49,13 +49,11 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
     }
 
     try {
+      const response = await appointmentService.getById(appointmentId);
       if (onEdit) {
-        const response = await appointmentService.getById(appointmentId);
         onEdit(response.data);
-      } else {
-        const response = await appointmentService.getById(appointmentId);
-        navigate(`/appointments/${appointmentId}/edit`, { state: { appointment: response.data } });
       }
+      navigate(`/appointments/${appointmentId}/edit`, { state: { appointment: response.data } });
     } catch (error) {
       toast.error('Failed to edit appointment');
       console.error('Error editing appointment:', error);
