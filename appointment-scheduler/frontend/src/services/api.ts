@@ -16,7 +16,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true // Add this for CORS with credentials
+  withCredentials: true
 });
 
 // Add token to requests
@@ -26,14 +26,28 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, (error) => {
+  console.error('Request error:', error);
+  return Promise.reject(error);
 });
 
-// Handle token expiration
+// Handle token expiration and errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('Response:', response);
+    return response;
+  },
   (error) => {
+    console.error('API Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: error.config
+    });
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);
