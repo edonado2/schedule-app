@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/api';
@@ -8,32 +8,38 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Validate form on input changes
+  useEffect(() => {
+    setIsFormValid(email.length > 0 && password.length >= 6);
+  }, [email, password]);
+
+  // Memoize the submit handler
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid || loading) return;
+
     setError('');
     setLoading(true);
 
     try {
-      console.log('Attempting login with:', { email });
       const response = await authService.login({ email, password });
-      console.log('Login response:', response);
       
-      if (response.data && response.data.token && response.data.user) {
+      if (response.data?.token && response.data?.user) {
         login(response.data.token, response.data.user);
         navigate('/');
       } else {
         throw new Error('Invalid response format');
       }
     } catch (err: any) {
-      console.error('Login error:', err);
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, password, isFormValid, loading, login, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -119,8 +125,12 @@ const Login: React.FC = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                disabled={!isFormValid || loading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                  !isFormValid || loading
+                    ? 'bg-indigo-400 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                }`}
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
@@ -173,4 +183,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login; 
+export default React.memo(Login); 
