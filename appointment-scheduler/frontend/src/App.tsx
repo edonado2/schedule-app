@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import AppointmentList from './components/AppointmentList';
 import AppointmentForm from './components/AppointmentForm';
@@ -10,6 +10,7 @@ import { Appointment } from './types/appointment';
 import { appointmentService } from './services/api';
 import Layout from './components/Layout';
 import Calendar from './components/Calendar';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const AppContent = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -18,14 +19,11 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchAppointments();
-    }
-  }, [isAuthenticated, location.pathname]);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
+    if (!isAuthenticated) return;
+    
     try {
       setLoading(true);
       const response = await appointmentService.getAll();
@@ -37,26 +35,43 @@ const AppContent = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
-  const handleDelete = async (id: string) => {
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments, location.pathname]);
+
+  const handleDelete = useCallback(async (id: string) => {
     try {
       await appointmentService.delete(id);
-      setAppointments(appointments.filter(app => app._id !== id));
+      setAppointments(prev => prev.filter(app => app._id !== id));
     } catch (err) {
       setError('Failed to delete appointment');
       console.error('Error deleting appointment:', err);
     }
-  };
+  }, []);
 
-  const handleEdit = (appointment: Appointment) => {
+  const handleEdit = useCallback((appointment: Appointment) => {
     // Navigation to edit form is handled by the AppointmentList component
-  };
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     setShowProfileMenu(false);
-  };
+    // Clear appointments on logout
+    setAppointments([]);
+    // Navigate to login page
+    navigate('/login', { replace: true });
+  }, [logout, navigate]);
+
+  const memoizedAppointmentList = useMemo(() => (
+    <AppointmentList
+      appointments={appointments}
+      loading={loading}
+      onDelete={handleDelete}
+      onEdit={handleEdit}
+    />
+  ), [appointments, loading, handleDelete, handleEdit]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,6 +91,12 @@ const AppContent = () => {
                     className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                   >
                     Appointments
+                  </Link>
+                  <Link
+                    to="/calendar"
+                    className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    Calendar
                   </Link>
                   <Link
                     to="/appointments/new"
@@ -138,40 +159,53 @@ const AppContent = () => {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/calendar" element={<Calendar appointments={appointments} />} />
+          <Route
+            path="/calendar"
+            element={
+              <ProtectedRoute>
+                <Calendar appointments={appointments} />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/appointments"
             element={
-              isAuthenticated ? (
-                <AppointmentList
-                  appointments={appointments}
-                  onDelete={handleDelete}
-                  onEdit={handleEdit}
-                />
-              ) : (
-                <Navigate to="/login" />
-              )
+              <ProtectedRoute>
+                {memoizedAppointmentList}
+              </ProtectedRoute>
             }
           />
           <Route
             path="/appointments/new"
-            element={isAuthenticated ? <AppointmentForm /> : <Navigate to="/login" />}
+            element={
+              <ProtectedRoute>
+                <AppointmentForm />
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/appointments/:id/edit"
-            element={isAuthenticated ? <AppointmentForm /> : <Navigate to="/login" />}
+            element={
+              <ProtectedRoute>
+                <AppointmentForm />
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/appointments/:id"
-            element={isAuthenticated ? <AppointmentForm /> : <Navigate to="/login" />}
+            element={
+              <ProtectedRoute>
+                <AppointmentForm />
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/login"
-            element={!isAuthenticated ? <Login /> : <Navigate to="/" />}
+            element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />}
           />
           <Route
             path="/register"
-            element={!isAuthenticated ? <Register /> : <Navigate to="/" />}
+            element={!isAuthenticated ? <Register /> : <Navigate to="/" replace />}
           />
         </Routes>
       </main>
@@ -189,4 +223,4 @@ const App = () => {
   );
 };
 
-export default App; 
+export default React.memo(App); 
